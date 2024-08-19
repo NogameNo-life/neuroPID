@@ -25,15 +25,15 @@ nn_manager* nn_emul_manager = nullptr;
 
 #ifdef SAVE_DATA_FOR_LEARNING
 FILE *emulator_learning_data_stream;
-#endif 
+#endif
 //----------------------------------------------------------------------------
 void DrawSeries( HDC hdc, int x0, int y0, int x1, int y1, int scale,
                 std::vector<float> *data_y, std::vector<float> *data_y2,
                 std::vector<float> *data_y3 )
-    {    
+    {
     //Считаем очищенной заданную область.
     //RECT rect;
-    //SetRect( &rect, x0, y0, x1, y1 );    
+    //SetRect( &rect, x0, y0, x1, y1 );
     //FillRect (hdc, &rect, (HBRUSH)(COLOR_WINDOW+1));
 
     //Рисуем оси.
@@ -49,13 +49,13 @@ void DrawSeries( HDC hdc, int x0, int y0, int x1, int y1, int scale,
     MoveToEx( hdc, CENTER_X, y1 - D, NULL );
     LineTo( hdc, CENTER_X, y0 + D + ARROW_SIZE );
     //Arrow.
-    MoveToEx( hdc, CENTER_X, y0 + D, NULL );   
+    MoveToEx( hdc, CENTER_X, y0 + D, NULL );
     LineTo( hdc, CENTER_X + ARROW_SIZE / 3, y0 + D + ARROW_SIZE );
     LineTo( hdc, CENTER_X - ARROW_SIZE / 3, y0 + D + ARROW_SIZE );
-    LineTo( hdc, CENTER_X, y0 + D );     
+    LineTo( hdc, CENTER_X, y0 + D );
 
-    //Lines y    
-    int y_ = y1 - D;    
+    //Lines y
+    int y_ = y1 - D;
     int y_val = 0;
     WCHAR y_str[ 10 ];
     while ( y_ > D + ARROW_SIZE )
@@ -68,23 +68,22 @@ void DrawSeries( HDC hdc, int x0, int y0, int x1, int y1, int scale,
         if ( y_val >= 10 )
             {
             TextOut( hdc, CENTER_X + 5, y_ - 8, y_str, wcslen( y_str ) );
-            }        
+            }
 
-        y_ -= ( int ) ( 10 * SCALE_Y );   
-        y_val += 10;       
+        y_ -= ( int ) ( 10 * SCALE_Y );
+        y_val += 10;
         }
 
 
     //Lines x
-    int x_ = CENTER_X;    
+    int x_ = CENTER_X;
     while ( x_ < x1 - D - ARROW_SIZE )
         {
         MoveToEx( hdc, x_, y1 - D, NULL );
         LineTo( hdc, x_, y1 - D - 5 );
         x_ += ( int ) SCALE_X;
         }
-    x_ = CENTER_X;  
-    while ( x_ > D )
+    x_ = CENTER_X;
         {
         MoveToEx( hdc, x_, y1 - D, NULL );
         LineTo( hdc, x_, y1 - D - 5 );
@@ -94,34 +93,33 @@ void DrawSeries( HDC hdc, int x0, int y0, int x1, int y1, int scale,
 
     //x
     MoveToEx( hdc, x0 + D, y1 - D, NULL );
-    LineTo( hdc, x1 - D - ARROW_SIZE, y1 - D );    
+    LineTo( hdc, x1 - D - ARROW_SIZE, y1 - D );
     //Arrow.
-    MoveToEx( hdc, x1 - D, y1 - D, NULL );   
+    MoveToEx( hdc, x1 - D, y1 - D, NULL );
     LineTo( hdc, x1 - ARROW_SIZE - D, y1 - D - ARROW_SIZE / 3 );
     LineTo( hdc, x1 - ARROW_SIZE - D, y1 - D + ARROW_SIZE / 3 );
     LineTo( hdc, x1 - D, y1 - D );
 
     //Строим график.
-    LOGBRUSH lb;    
-    lb.lbStyle = BS_SOLID; 
-    lb.lbColor = RGB(0, 0, 0); 
-    lb.lbHatch = 0; 
+    LOGBRUSH lb;
+    lb.lbStyle = BS_SOLID;
+    lb.lbColor = RGB(0, 0, 0);
+    lb.lbHatch = 0;
 
-    HGDIOBJ hPen = ExtCreatePen(PS_GEOMETRIC | PS_SOLID, 2, &lb, 0, NULL);    
-    SelectObject(hdc, hPen); 
-
+    HGDIOBJ hPen = ExtCreatePen(PS_GEOMETRIC | PS_SOLID, 2, &lb, 0, NULL);
+    SelectObject(hdc, hPen);
     //MoveToEx( hdc, CENTER_X, CENTER_Y, NULL );
 
-    
+
     //Строим линию 1 влево.
-    MoveToEx( hdc, CENTER_X, 
+    MoveToEx( hdc, CENTER_X,
         y1 - D - ( int ) ( SCALE_Y * data_y[ 0 ][ 0 ] ), NULL );
 
     ////Массив точек для кривой Безье.
     //POINT* lpPoints = new POINT[ data_y->size() ];
     //for ( unsigned int i = 0; i < data_y->size(); i++ )
     //    {
-    //    POINT tmp = 
+    //    POINT tmp =
     //        { CENTER_X - ( int ) SCALE_X * i, y1 - D - ( int ) ( SCALE_Y * data_y[ 0 ][ i ] ) };
     //    lpPoints[ i ] = tmp;
     //    }
@@ -129,48 +127,48 @@ void DrawSeries( HDC hdc, int x0, int y0, int x1, int y1, int scale,
 
     for ( unsigned int i = 0; i < data_y->size(); i++ )
         {
-        LineTo( hdc, CENTER_X - ( int ) SCALE_X * i, 
+        LineTo( hdc, CENTER_X - ( int ) SCALE_X * i,
             y1 - D - ( int ) ( SCALE_Y * data_y[ 0 ][ i ] ) );
         }
-    DeleteObject(hPen); 
+    DeleteObject(hPen);
 
     //Строим линию 2 влево.
-    LOGBRUSH lb2;    
-    lb2.lbStyle = BS_SOLID; 
-    lb2.lbColor = RGB( 255, 0, 0); 
+    LOGBRUSH lb2;
+    lb2.lbStyle = BS_SOLID;
+    lb2.lbColor = RGB( 255, 0, 0);
     lb2.lbHatch = 0;
 
-    HGDIOBJ hPen2 = ExtCreatePen(PS_GEOMETRIC | PS_SOLID, 2, &lb2, 0, NULL);    
-    HGDIOBJ hPenOld = SelectObject(hdc, hPen2); 
+    HGDIOBJ hPen2 = ExtCreatePen(PS_GEOMETRIC | PS_SOLID, 2, &lb2, 0, NULL);
+    HGDIOBJ hPenOld = SelectObject(hdc, hPen2);
 
-    MoveToEx( hdc, CENTER_X, 
+    MoveToEx( hdc, CENTER_X,
         y1 - D - ( int ) ( SCALE_Y * data_y2[ 0 ][ 0 ] ), NULL );
 
     for ( unsigned int i = 0; i < data_y2->size(); i++ )
         {
-        LineTo( hdc, CENTER_X - ( int ) SCALE_X * i, 
+        LineTo( hdc, CENTER_X - ( int ) SCALE_X * i,
             y1 - D - ( int ) ( SCALE_Y * data_y2[ 0 ][ i ] ) );
         }
-    DeleteObject(hPen2); 
+    DeleteObject(hPen2);
 
     //Строим линию 3 влево.
-    LOGBRUSH lb3;    
-    lb3.lbStyle = BS_SOLID; 
-    lb3.lbColor = RGB( 0, 0, 0 ); 
+    LOGBRUSH lb3;
+    lb3.lbStyle = BS_SOLID;
+    lb3.lbColor = RGB( 0, 0, 0 );
     lb3.lbHatch = 0;
 
-    HGDIOBJ hPen3 = ExtCreatePen(PS_GEOMETRIC | PS_DASH, 2, &lb3, 0, NULL);    
-    hPenOld = SelectObject(hdc, hPen3); 
+    HGDIOBJ hPen3 = ExtCreatePen(PS_GEOMETRIC | PS_DASH, 2, &lb3, 0, NULL);
+    hPenOld = SelectObject(hdc, hPen3);
 
-    MoveToEx( hdc, CENTER_X, 
+    MoveToEx( hdc, CENTER_X,
         y1 - D - ( int ) ( SCALE_Y * data_y3[ 0 ][ 0 ] ), NULL );
 
     for ( unsigned int i = 0; i < data_y3->size(); i++ )
         {
-        LineTo( hdc, CENTER_X - ( int ) SCALE_X * i, 
+        LineTo( hdc, CENTER_X - ( int ) SCALE_X * i,
             y1 - D - ( int ) ( SCALE_Y * data_y3[ 0 ][ i ] ) );
         }
-    DeleteObject(hPen3); 
+    DeleteObject(hPen3);
 
     }
 //-----------------------------------------------------------------------------
@@ -185,7 +183,7 @@ void init( HWND hWnd )
         ::freopen_s( &pNewStderr, "CONOUT$", "w", stderr );
         ::freopen_s( &pNewStdin, "CONIN$", "r", stdin );
 
-        }  
+        }
     SetConsoleCP ( 1251 );
     SetConsoleOutputCP ( 1251 );
 
@@ -193,15 +191,15 @@ void init( HWND hWnd )
     fopen_s( &emulator_learning_data_stream, "..\\PID_tuner_learning.data", "w+" );
 
     fprintf_s( emulator_learning_data_stream, "%d\n%d\n%d\n", 5, 1000, 120 );
-#endif 
+#endif
     }
 //----------------------------------------------------------------------------
 void final()
-    {   
+    {
 #ifdef SAVE_DATA_FOR_LEARNING
     fclose( emulator_learning_data_stream );
     emulator_learning_data_stream = 0;
-#endif 
+#endif
 
     delete nn_emul_manager;
     nn_emul_manager = nullptr;
@@ -212,7 +210,7 @@ void eval()
     nn_emul_manager->eval();
 
 #ifdef SAVE_DATA_FOR_LEARNING
-    fprintf_s( emulator_learning_data_stream, "%f\t%f\t%f\t%f\t%f\n", 
+    fprintf_s( emulator_learning_data_stream, "%f\t%f\t%f\t%f\t%f\n",
         nn_emul_manager->get_plant()->get_current_out(),
         nn_emul_manager->get_plant()->get_current_control_v(),
         nn_emul_manager->get_PID()->get_p(), nn_emul_manager->get_PID()->get_i(),
@@ -272,7 +270,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
             }
         }
-     
 
     return (int) msg.wParam;
     }
@@ -330,12 +327,12 @@ LRESULT CALLBACK NewEditProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         case WM_CHAR:
             if( wParam == VK_RETURN )
                 {
-                WCHAR str[255];   
-               
+                WCHAR str[255];
+
                 GetWindowText( hwnd, str, 255 );
                 float new_val = ( float ) _wtof( str );
                 nn_emul_manager->get_plant()->set_k1( new_val );
-                
+
                 return( 0 );
                 }
         }
@@ -349,7 +346,7 @@ LRESULT CALLBACK NewEditProc2(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         case WM_CHAR:
             if( wParam == VK_RETURN )
                 {
-                WCHAR str[255];   
+                WCHAR str[255];
 
                 GetWindowText( hwnd, str, 255 );
                 float new_val = ( float ) _wtof( str );
@@ -384,17 +381,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
         }
 
     //Start
-    HWND hwnd_start = CreateWindow(        
-        L"Button",        // Predefined class; Unicode assumed 
-        L"Start",         // Button text 
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON ,  // Styles 
-        530,             // x position 
-        500,            // y position 
+    HWND hwnd_start = CreateWindow(
+        L"Button",        // Predefined class; Unicode assumed
+        L"Start",         // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON ,  // Styles
+        530,             // x position
+        500,            // y position
         100,            // Button width
         20,             // Button height
         hWnd,           // Parent window
         (HMENU)10100,   // No menu.
-        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE), 
+        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE),
         NULL);          // Pointer not needed.
 
     if (!hwnd_start)
@@ -408,22 +405,22 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
     //k1
     int k = nn_emul_manager->get_plant()->get_k1();
-    wchar_t str[ 10 ];        
+    wchar_t str[ 10 ];
     _itow( k, str, 10 );
-    
-    HWND hwnd_k1_edit = CreateWindow(        
-        L"Edit",        // Predefined class; Unicode assumed 
-        str,         // Button text 
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles 
-        30,             // x position 
-        500,            // y position 
+
+    HWND hwnd_k1_edit = CreateWindow(
+        L"Edit",        // Predefined class; Unicode assumed
+        str,         // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles
+        30,             // x position
+        500,            // y position
         100,            // Button width
         20,             // Button height
         hWnd,           // Parent window
         (HMENU)10000,   // No menu.
-        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE), 
+        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE),
         NULL);          // Pointer not needed.
-    
+
     if (!hwnd_k1_edit)
         {
         return FALSE;
@@ -433,61 +430,61 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     SetWindowLongPtr(hwnd_k1_edit,GWLP_WNDPROC,(LPARAM)NewEditProc);
 
     //k1 label.
-    HWND hwnd_k1_label = CreateWindow(        
-        L"Static",        // Predefined class; Unicode assumed 
-        L"k1",         // Button text 
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles 
-        5,              // x position 
-        500,            // y position 
+    HWND hwnd_k1_label = CreateWindow(
+        L"Static",        // Predefined class; Unicode assumed
+        L"k1",         // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles
+        5,              // x position
+        500,            // y position
         20,             // Button width
         20,             // Button height
         hWnd,           // Parent window
         (HMENU)10000,   // No menu.
-        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE), 
+        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE),
         NULL);          // Pointer not needed.
 
     //Use learning label.
-    HWND hwnd_MLP_learn_label = CreateWindow(        
-        L"Static",        // Predefined class; Unicode assumed 
-        L"Online learning", // Button text 
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER,  // Styles 
-        200,            // x position 
-        500,            // y position 
+    HWND hwnd_MLP_learn_label = CreateWindow(
+        L"Static",        // Predefined class; Unicode assumed
+        L"Online learning", // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_LEFT | WS_BORDER,  // Styles
+        200,            // x position
+        500,            // y position
         120,            // Button width
         20,             // Button height
         hWnd,           // Parent window
         (HMENU)0,       // No menu.
-        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE), 
+        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE),
         NULL);          // Pointer not needed.
 
     //Use learning checkbox.
-    HWND hwnd_MLP_learn_check_box = CreateWindow(        
-        L"BUTTON",      // Predefined class; Unicode assumed 
-        L"NN2 emulator learn",         // Button text 
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX | BST_CHECKED,  // Styles 
-        330,             // x position 
-        500,            // y position 
+    HWND hwnd_MLP_learn_check_box = CreateWindow(
+        L"BUTTON",      // Predefined class; Unicode assumed
+        L"NN2 emulator learn",         // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX | BST_CHECKED,  // Styles
+        330,             // x position
+        500,            // y position
         15,             // Button width
         20,             // Button height
         hWnd,           // Parent window
         (HMENU)10001,   // ID.
-        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE), 
+        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE),
         NULL);          // Pointer not needed.
 
     Button_SetCheck( hwnd_MLP_learn_check_box, BST_CHECKED );
 
     //z
-    HWND hwnd_z_edit = CreateWindow(        
-        L"Edit",        // Predefined class; Unicode assumed 
-        L"90",         // Button text 
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles 
-        30,             // x position 
-        530,            // y position 
+    HWND hwnd_z_edit = CreateWindow(
+        L"Edit",        // Predefined class; Unicode assumed
+        L"90",         // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles
+        30,             // x position
+        530,            // y position
         100,            // Button width
         20,             // Button height
         hWnd,           // Parent window
         (HMENU)10010,   // No menu.
-        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE), 
+        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE),
         NULL);          // Pointer not needed.
 
     if (!hwnd_k1_edit)
@@ -498,18 +495,18 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
     DefEditProc2 = (WNDPROC)GetWindowLongPtr(hwnd_z_edit,GWLP_WNDPROC);
     SetWindowLongPtr(hwnd_z_edit,GWLP_WNDPROC,(LPARAM)NewEditProc2);
 
-    //z label.  
-    HWND hwnd_z_label = CreateWindow(        
-        L"Static",        // Predefined class; Unicode assumed 
-        L"z",         // Button text 
-        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles 
-        5,              // x position 
-        530,            // y position 
+    //z label.
+    HWND hwnd_z_label = CreateWindow(
+        L"Static",        // Predefined class; Unicode assumed
+        L"z",         // Button text
+        WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_RIGHT | WS_BORDER,  // Styles
+        5,              // x position
+        530,            // y position
         20,             // Button width
         20,             // Button height
         hWnd,           // Parent window
         (HMENU)10011,   // No menu.
-        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE), 
+        (HINSTANCE)GetWindowLong(hWnd, GWLP_HINSTANCE),
         NULL);          // Pointer not needed.
 
     ShowWindow(hWnd, nCmdShow);
@@ -539,7 +536,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
         case WM_CREATE:
             {
-            SetTimer( hWnd, idTimer = 1, 100, NULL); 
+            SetTimer( hWnd, idTimer = 1, 100, NULL);
             break;
             }
 
@@ -584,13 +581,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
                 //    if( EN_CHANGE == wmEvent)
-                //        {          
+                //        {
                 //        WCHAR str[255];
                 //        int a = GetDlgItemText( hWnd, 10000, str, 255 );
                 //        a++;
                 //        }
 
-                //    break;             
+                //    break;
 
                 default:
                     return DefWindowProc(hWnd, message, wParam, lParam);
@@ -625,7 +622,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //Рисуем график ПИД.
                 DrawSeries( hdc, rect.left, rect.top, rect.right, rect.bottom,
                     10, nn_emul_manager->get_plant_data(),
-                    nn_emul_manager->get_PID_data(), 
+                    nn_emul_manager->get_PID_data(),
                     //emulator_output );
                     nn_emul_manager->get_nn2_emul_data() );
 
@@ -646,16 +643,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hdc = BeginPaint(hWnd, &ps);
 
             RECT rect;
-            GetClientRect (hWnd, &rect);            
+            GetClientRect (hWnd, &rect);
             ExcludeClipRect( hdc, rect.left, rect.top, rect.right, rect.bottom / 2 );
             FillRect ( hdc, &rect, (HBRUSH)(COLOR_WINDOW+1));
-            HRGN hrgn = CreateRectRgn( 
-                rect.left, rect.top, rect.right, rect.bottom / 2 ); 
-            SelectClipRgn(hdc, hrgn); 
-            
+            HRGN hrgn = CreateRectRgn(
+                rect.left, rect.top, rect.right, rect.bottom / 2 );
+            SelectClipRgn(hdc, hrgn);
+
             //Очищаем окно.
             //RECT rect;
-            //GetClientRect (hWnd, &rect);            
+            //GetClientRect (hWnd, &rect);
             //FillRect ( hdc, &rect, (HBRUSH)(COLOR_WINDOW+1));
 
             //MoveToEx( hdc, 0, 0, NULL );
