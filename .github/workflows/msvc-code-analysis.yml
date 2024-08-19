@@ -1,4 +1,4 @@
-name: Check branch name
+name: MSVC build
 on:
   push:
     branches:
